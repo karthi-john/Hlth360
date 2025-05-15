@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 
 exports.getPatients = async (req, res, next) => {
   try {
-    
-    const patients = await Patient.find();
+
+    const filter = req.query;
+    console.log(filter);
+    const patients = await Patient.find(filter)
+                .populate('prescribedProducts');
     
     res.status(200).json({
       success: true,
@@ -27,7 +30,7 @@ exports.getPatientById = async (req, res, next) => {
       });
     }
     
-    const patient = await Patient.findById(id);
+    const patient = await Patient.findById(id).populate('prescribedProducts');
     
     if (!patient) {
       return res.status(404).json({
@@ -49,8 +52,9 @@ exports.getPatientById = async (req, res, next) => {
 exports.createPatient = async (req, res, next) => {
 
     try{
-        const patient = await Patient.create(req.body);
+        const newPatient = await Patient.create(req.body);
         
+        const patient = await Patient.findById(newPatient._id).populate('prescribedProducts');
         res.status(201)
             .json({
                 success : true,
@@ -73,7 +77,7 @@ exports.updatePatient = async (req, res, next) => {
         });
         }
 
-        const patient = await Patient.findByIdAndUpdate(id, req.body);
+        const patient = await Patient.findByIdAndUpdate(id, req.body, {new : true}).populate('prescribedProducts');
 
         if(!patient){
             return res.status(404).json({
@@ -103,7 +107,7 @@ exports.deletePatient = async (req, res, next) => {
         });
         }
 
-        const patient = await Patient.findByIdAndDelete(id);
+        const patient = await Patient.findByIdAndDelete(id).populate('prescribedProducts');
 
         if(!patient){
             return res.status(404).json({
